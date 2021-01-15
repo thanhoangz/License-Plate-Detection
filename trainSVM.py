@@ -1,20 +1,20 @@
 import cv2
-import os
 import numpy as np
 import glob
 
 digit_w = 30
 digit_h = 60
 
-write_path="data/"
+write_path = "data/"
 
-def get_digit_data(path):#:, digit_list, label_list):
+
+def get_digit_data(path):  #:, digit_list, label_list):
 
     digit_list = []
     label_list = []
 
     for number in range(10):
-        i=0
+        i = 0
         for img_org_path in glob.iglob(path + str(number) + '/*.jpg'):
             print(img_org_path)
             img = cv2.imread(img_org_path, 0)
@@ -27,9 +27,9 @@ def get_digit_data(path):#:, digit_list, label_list):
             label_list.append([int(number)])
 
     for number in range(65, 91):
-        #number = chr(number)
+        # number = chr(number)
         print(number)
-        i=0
+        i = 0
         for img_org_path in glob.iglob(path + str(number) + '/*.jpg'):
             print(img_org_path)
             img = cv2.imread(img_org_path, 0)
@@ -41,9 +41,10 @@ def get_digit_data(path):#:, digit_list, label_list):
             digit_list.append(img)
             label_list.append([int(number)])
 
-    return  digit_list, label_list
+    return digit_list, label_list
 
-#lấy dữ liệu
+
+# lấy dữ liệu
 digit_path = "data/"
 digit_list, label_list = get_digit_data(digit_path)
 
@@ -60,4 +61,3 @@ svm_model.setTermCriteria((cv2.TERM_CRITERIA_MAX_ITER, 100, 1e-6))
 svm_model.train(digit_list, cv2.ml.ROW_SAMPLE, label_list)
 
 svm_model.save("svm.xml")
-
