@@ -26,19 +26,19 @@ def fine_tune(lp):
     return new_string
 
 
-# image path
-img_path = "test/test4.jpg"
-
 # Load model LP detection
 wpod_net_path = "wpod-net_update1.json"
 wpod_net = load_model(wpod_net_path)
 
-# Read img
-image_vehicle = cv2.imread(img_path)
-
 # The largest and smallest sizes of an image size
 d_max = 608
 d_min = 288
+
+# image path
+img_path = "test/test6.png"
+
+# Read img
+image_vehicle = cv2.imread(img_path)
 
 # Get the ratio between W and H of the figure and find the smallest dimensions
 ratio = float(max(image_vehicle.shape[:2])) / min(image_vehicle.shape[:2])
@@ -92,10 +92,11 @@ if len(license_plate_images):
                 curr_num = thre_mor[y:y + h, x:x + w]
                 curr_num = cv2.resize(curr_num, dsize=(digit_w, digit_h))
                 _, curr_num = cv2.threshold(curr_num, 30, 255, cv2.THRESH_BINARY)
+
                 curr_num = np.array(curr_num, dtype=np.float32)
                 curr_num = curr_num.reshape(-1, digit_w * digit_h)
 
-                # Dua vao model SVM
+                # Predicted by model SVM
                 result = model_svm.predict(curr_num)[1]
                 result = int(result[0, 0])
 

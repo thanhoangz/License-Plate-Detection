@@ -86,20 +86,20 @@ def IOU_labels(l1, l2):
     return IOU(l1.tl(), l1.br(), l2.tl(), l2.br())
 
 
-def nms(Labels, iou_threshold=0.5):
-    SelectedLabels = []
-    Labels.sort(key=lambda l: l.prob(), reverse=True)
+def nms(labels, iou_threshold=0.5):
+    selected_labels = []
+    labels.sort(key=lambda l: l.prob(), reverse=True)
 
-    for label in Labels:
+    for label in labels:
         non_overlap = True
-        for sel_label in SelectedLabels:
+        for sel_label in selected_labels:
             if IOU_labels(label, sel_label) > iou_threshold:
                 non_overlap = False
                 break
 
         if non_overlap:
-            SelectedLabels.append(label)
-    return SelectedLabels
+            selected_labels.append(label)
+    return selected_labels
 
 
 def load_model(path):
@@ -149,10 +149,10 @@ def reconstruct(I, Iresized, Yr, lp_threshold):
     one_line = (470, 110)
     two_lines = (280, 200)
 
-    Probs = Yr[..., 0]
+    probs = Yr[..., 0]
     Affines = Yr[..., 2:]
 
-    xx, yy = np.where(Probs > lp_threshold)
+    xx, yy = np.where(probs > lp_threshold)
     # CNN input image size 
     WH = getWH(Iresized.shape)
     # output feature map size
@@ -166,7 +166,7 @@ def reconstruct(I, Iresized, Yr, lp_threshold):
     for i in range(len(xx)):
         x, y = xx[i], yy[i]
         affine = Affines[x, y]
-        prob = Probs[x, y]
+        prob = probs[x, y]
 
         mn = np.array([float(y) + 0.5, float(x) + 0.5])
 
@@ -191,10 +191,11 @@ def reconstruct(I, Iresized, Yr, lp_threshold):
     final_labels = nms(labels, 0.1)
     final_labels_frontal = nms(labels_frontal, 0.1)
 
-    print(final_labels_frontal)
-
-    # LP size and type
-    out_size, lp_type = (two_lines, 2) if (
+    if len(final_labels) == 0 | len(final_labels_frontal) == 0:
+        out_size, lp_type = (one_line, 1)
+    else:
+        # LP size and type
+        out_size, lp_type = (two_lines, 2) if (
                 (final_labels_frontal[0].wh()[0] / final_labels_frontal[0].wh()[1]) < 1.7) else (one_line, 1)
 
     TLp = []
@@ -208,7 +209,7 @@ def reconstruct(I, Iresized, Yr, lp_threshold):
             Ilp = cv2.warpPerspective(I, H, out_size, borderValue=0)
             TLp.append(Ilp)
     print(final_labels)
-    return final_labels, TLp, lp_type
+    return final_labels, TLp
 
 
 def detect_lp(model, I, max_dim, lp_threshold):
@@ -236,6 +237,6 @@ def detect_lp(model, I, max_dim, lp_threshold):
     print(Yr.shape)
 
     # Tái tạo và trả về các biến gồm: Nhãn, Ảnh biến số, Loại biển số (1: dài: 2 vuông)
-    L, TLp, lp_type = reconstruct(I, Iresized, Yr, lp_threshold)
+    L, TLp = reconstruct(I, Iresized, Yr, lp_threshold)
 
-    return L, TLp, lp_type
+    return L, TLp
